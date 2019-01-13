@@ -4,6 +4,7 @@
 import re                       #피드를 나누기 위한 정규표현식 라이브러리
 from datetime import datetime   #시간 처리 라이브러리
 import html                     #타이틀 행 특수문자 깨지는 거 처리용 라이브러리
+import os                       #현재 파일 위치 확인용 라이브러리
 
 import feedparser               #RSS 받아오는 라이브러리
 import twitter                  #트윗 발송용 라이브러리
@@ -11,6 +12,7 @@ import twitter                  #트윗 발송용 라이브러리
 import logging                  #로그 출력용 라이브러리
 import logging.handlers
 
+DEFAULT_DIR = os.path.dirname(os.path.realpath(__file__))
 ######################################class 선언부######################################
 
 class feedlist:
@@ -54,7 +56,7 @@ class CustomError(Exception):       #사용자 정의 오류
 
 ######################################함수 선언부######################################
 
-def inputfile(filename="feeder.ini"):
+def inputfile(filename=DEFAULT_DIR + "/feeder.ini"):
 
 #<filename>에서 파일을 입력받아서 RSS주소랑 기타등등(<feedlist>에서 정의한 거) 정리해서 변수 형태로 출력해주는 함수
 #파일 구조 : {index="150" prefix="デッドボールP" name="デッドボールP" RSS="http://www.nicovideo.jp/mylist/3390381?rss=2.0"}
@@ -89,7 +91,7 @@ def inputfile(filename="feeder.ini"):
 
 ###
 
-def inputdic(filename="late.st"):
+def inputdic(filename=DEFAULT_DIR + "/late.st"):
 
 #파일 구조 : {index="40" RSS="http://www.nicovideo.jp/mylist/5113852?rss=2.0" latest="Sat, 09 Apr 2016 19:00:35 +0900"}
 #<feed_latest>에 {index : [RSS, latest]} 형태로 내보냄
@@ -117,7 +119,7 @@ def inputdic(filename="late.st"):
     return feed_latest, False
 
 
-def outputdic(filename="late.st", feed_latest={}, new_flag=False):
+def outputdic(filename=DEFAULT_DIR + "/late.st", feed_latest={}, new_flag=False):
     if new_flag:
         with open(filename, "w", encoding="utf-8-sig") as dic:
             for feed in feed_latest:
@@ -190,7 +192,7 @@ def rss2compare(feed_lst, api):
 
 ###
 
-def Twitter_Login(filename="tweetkey.ini"):
+def Twitter_Login(filename=DEFAULT_DIR + "/tweetkey.ini"):
 
     with open(filename, "r", encoding="utf-8-sig") as pathkey:
         text = pathkey.read()
@@ -238,7 +240,7 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
 
     #로그파일 만들 핸들러 선언
-    eventHandler = logging.handlers.RotatingFileHandler('./event.log', maxBytes = 1024 * 10, backupCount = 5)
+    eventHandler = logging.handlers.RotatingFileHandler(DEFAULT_DIR + '/event.log', maxBytes = 1024 * 10, backupCount = 5)
         #10kByte, 5개까지 로그를 저장함
     eventHandler.setLevel(logging.INFO)
     eventHandler.setFormatter(logging.Formatter('%(asctime)s|%(levelname)s > %(message)s'))
@@ -252,10 +254,10 @@ if __name__ == '__main__':
         feed_list = []      #파일에서 RSS 주소랑 관련정보 불러다 리스트로 저장하는 데 씀, 자료형은 <feedlist>
         feed_latest = {}    #이전 갱신시각 확인하는 데 씀, {index : [RSS, latest]}형태로 저장
 
-        feed_list = inputfile('feeder.ini')
-        feed_latest, new_flag = inputdic('late.st')
+        feed_list = inputfile(DEFAULT_DIR + '/feeder.ini')
+        feed_latest, new_flag = inputdic(DEFAULT_DIR + '/late.st')
 
-        api = Twitter_Login('tweetkey.ini')
+        api = Twitter_Login(DEFAULT_DIR + '/tweetkey.ini')
 
         for i in range(0,len(feed_list)):
             #피드 개수만큼 파싱
@@ -263,24 +265,13 @@ if __name__ == '__main__':
             #######################    print("시간 다됐어!")
             new_flag = rss2compare(feed_list[i], api) or new_flag
 
-        outputdic('late.st', feed_latest, new_flag)
+        outputdic(DEFAULT_DIR + '/late.st', feed_latest, new_flag)
     except Exception as exerr:
         logger.critical('Critical Error : ' + exerr.args[0])
     finally:
         logger.info("Service End")
 ######################################잡설######################################
 #앞으로 해야 할 작업
-
-#(완료)피드를 읽어서 갱신이 있는지 검증
-#(완료)갱신 있는지 검증하는 법은 피드별로 갱신시간 저장해놨다가 대조하는 방식으로 해야 할 듯
-#(완료)같은 이름에 대해 URL이 겹치는지도 체크해줘야겠다
-
-#갱신이 있으면 갱신 있는 것들 트위터로 내보내기
-#트위터로 내보낼 때 140자 안 넘게 처리해줘야될거같다
-#피드 읽다 오류 뜰 수 있으니까 오류처리도 해줘야됨
-
-#그것만 하면 클라이언트에서 할 수 있는 작업은 끝인가
-#아 맞다 2.7에서 굴러갈 수 있게끔 UTF-8 처리 및 기타등등 해줘야돼
 
 #작업도를 그려보자
 #feed.er에서 자료 읽음 -> title별로 자료 정리(text엔 중복있다) -> feedparser 써서 피드 불러오기 ->
