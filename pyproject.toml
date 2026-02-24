@@ -1,0 +1,10 @@
+[project]
+name = "rss2twt"
+version = "2.0.0"
+description = "Monitors RSS feeds and automatically posts new items to Mastodon."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "feedparser>=6.0.12",
+    "mastodon-py>=2.1.4",
+]
