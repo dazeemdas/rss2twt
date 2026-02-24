@@ -16,8 +16,8 @@ RSS 피드를 모니터링하여 새로운 게시물이 감지되면 자동으�
 
 ```sh
 # 저장소 클론
-git clone <repository-url>
-cd Replace_twitterfeed
+git clone https://github.com/dazeemdas/rss2twt
+cd rss2twt
 
 # 의존성 설치
 pip install feedparser mastodon.py
